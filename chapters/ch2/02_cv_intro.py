@@ -68,10 +68,56 @@ def train(dataloader, model, loss_fn, optimizer):
 
 # %%
 # 훈련 실행
-epochs = 5
+epochs = 3
 
 for t in range(epochs):
     print(f"Epoch {t + 1}\n-------------------------------")
     train(train_loader, model, loss_function, optimizer)
 
 print("Done!")
+
+
+# %%
+# 모델 테스트 함수
+def test(dataloader, model):
+    size = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    model.eval()
+    test_loss, correct = 0, 0
+    with torch.no_grad():
+        for X, y in dataloader:
+            pred = model(X)
+            test_loss += loss_function(pred, y).item()
+            correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+    test_loss /= num_batches
+    correct /= size
+    print(f"Test Error: \n Accuracy: {(100 * correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+
+# %%
+# 모델 평가
+test(test_loader, model)
+# %%
+# 정확도 계산 함수
+def get_accuracy(pred, labels):
+    _, predictions = torch.max(pred, 1)
+    correct = (predictions == labels).float().sum()
+    accuracy = correct / labels.shape[0]
+    return accuracy
+
+# 모델 훈련 함수
+def train_v2(dataloader, model, loss_fn, optimizer):
+    size = len(dataloader.dataset)
+    model.train()
+    for batch, (X, y) in enumerate(dataloader):
+        # 예측
+        pred = model(X)
+        loss = loss_fn(pred, y)
+        accuracy = get_accuracy(pred, y)
+        # 역전파
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        if batch % 100 == 0:
+            loss, current = loss.item(), batch * len(X)
+            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
