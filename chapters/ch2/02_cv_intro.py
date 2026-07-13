@@ -108,16 +108,50 @@ def get_accuracy(pred, labels):
 def train_v2(dataloader, model, loss_fn, optimizer):
     size = len(dataloader.dataset)
     model.train()
+    total_loss = 0.0
+    total_accuracy = 0.0
+
     for batch, (X, y) in enumerate(dataloader):
         # 예측
         pred = model(X)
         loss = loss_fn(pred, y)
+        total_loss += loss.item()
+        
         accuracy = get_accuracy(pred, y)
+        total_accuracy += accuracy.item()
+
         # 역전파
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
         if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+            current = batch * len(X)
+            avg_loss = total_loss / (batch + 1) * 100
+            avg_accuracy = total_accuracy / (batch + 1) * 100
+            print(f"배치 {batch}, 손실: {avg_loss:>7f}, 정확도: {avg_accuracy:>0.2f}% [{current:>5d}/{size:>5d}]")
+
+# %%
+# 훈련 실행
+epochs = 3
+for t in range(epochs):
+    print(f"Epoch {t + 1}\n-------------------------------")
+    train_v2(train_loader, model, loss_function, optimizer)
+print("Done!")
+# %%
+# 모델 평가
+test(test_loader, model)
+
+
+
+
+# %%
+import matplotlib.pyplot as plt
+
+def predict_single_image(image, label, model):
+    model.eval()
+
+    image = image.unsqueeze(0)
+    with torch.no_grad():
+        prediction = model(image)
+        
