@@ -4,6 +4,7 @@
 그 다음 드롭아웃으로 모델을 최적화하는 방법을 간단히 알아본다.
 '''
 # %%
+import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
@@ -43,7 +44,7 @@ class FashionMNISTModel(nn.Module):
 
 model = FashionMNISTModel()
 
-loss_function = nn.NLLLoss()
+loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters())
 
 class FashionCNN(nn.Module):
@@ -89,10 +90,31 @@ def train(dataloader, model, loss_fn, optimizer):
             loss, current = loss.item(), batch * len(X)
             print(f"손실: {loss:>7f} [{current:>5d}/{size:>5d}]")
 
-
+# %%
+# FashionMNISTModel
 epochs = 5
 for t in range(epochs):
     print(f"에폭 {t+1}\n-------------------------------")
     train(train_loader, model, loss_function, optimizer)
 print("완료")
 
+
+# %%
+# FashionCNN
+model = FashionCNN()
+optimizer = optim.Adam(model.parameters())
+epochs = 5
+
+for t in range(epochs):
+    print(f"에폭 {t+1}\n-------------------------------")
+    train(train_loader, model, loss_function, optimizer)
+print("완료")
+# %%
+from torchsummary import summary
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using {device} device")
+model = FashionCNN().to(device)
+summary(model, input_size=(1, 28, 28))
+
+
+# %%
