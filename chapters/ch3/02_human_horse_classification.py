@@ -5,17 +5,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# %%
-url = "https://storage.googleapis.com/learning-datasets/validation-horse-or-human.zip"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
-file_name = "validation-horse-or-human.zip"
+# %%
+val_url = "https://storage.googleapis.com/learning-datasets/validation-horse-or-human.zip"
+train_url = "https://storage.googleapis.com/learning-datasets/horse-or-human.zip"
+
 training_dir = "horse-or-human/training/"
 validation_dir = "horse-or-human/validation/"
-urllib.request.urlretrieve(url, file_name)
 
-with zipfile.ZipFile(file_name, "r") as zip_ref:
-    zip_ref.extractall(validation_dir)
+urllib.request.urlretrieve(train_url, "horse-or-human.zip")
+urllib.request.urlretrieve(val_url, "validation-horse-or-human.zip")
+
+with zipfile.ZipFile("horse-or-human.zip", "r") as zip_ref:
     zip_ref.extractall(training_dir)
+
+with zipfile.ZipFile("validation-horse-or-human.zip", "r") as zip_ref:
+    zip_ref.extractall(validation_dir)
+
+print("Data downloaded and extracted successfully.")
 
 
 # %%
@@ -65,3 +74,56 @@ class HorsesHumansCNN(nn.Module):
         return x
 
 
+# %%
+from torchsummary import summary
+
+model = HorsesHumansCNN()
+model.to(device)
+summary(model, (3, 150, 150), batch_size=640)
+
+# %%
+criterion = nn.BCELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+def train_model(num_epochs):
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+        for images, labels in train_loader:
+            images, labels = images.to(device), labels.to(device).float()
+            optimizer.zero_grad()
+            outputs = model(images).view(-1)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+        print(f"Epoch {epoch+1}/{num_epochs}, Loss: {running_loss/len(train_loader)}")
+
+        model.eval()
+        with torch.no_grad():
+            correct = 0
+            total = 0
+            for images, labels in train_loader:
+                images, labels = images.to(device), labels.to(device).float()
+                outputs = model(images).view(-1)
+                predicted = (outputs > 0.5).float()
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+            print(f"Training Accuracy: {100 * correct / total}%")
+
+        model.eval()
+        with torch.no_grad():
+            correct = 0
+            total = 0
+            for images, labels in val_loader:
+                images, labels = images.to(device), labels.to(device).float()
+                outputs = model(images).view(-1)
+                predicted = (outputs > 0.5).float()
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+            print(f"Validation Accuracy: {100 * correct / total}%")
+
+        print("-" * 50, '\n')
+
+train_model(5)
+# %%
