@@ -17,3 +17,6 @@ chapters/ch3/horse-or-human/test/
 # Dataset archives
 chapters/ch3/horse-or-human.zip
 chapters/ch3/validation-horse-or-human.zip
+
+# Downloaded datasets
+data/
