@@ -28,14 +28,26 @@ sarcasm_path = download_dir / "sarcasm.json"
 import json
 from bs4 import BeautifulSoup
 
-with sarcasm_path.open('r', encoding='utf-8') as f:
-    datastore = json.load(f)
-
+datastore = []    
 sentences = []
 labels = []
 urls = []
 
+with sarcasm_path.open('r', encoding='utf-8') as f:
+    for line in f:
+        datastore.append(json.loads(line))
+
 for item in datastore:
-    sentences.append(item['headline'])
+    sentences.append(item['headline'].lower())
     labels.append(item['is_sarcastic'])
     urls.append(item['article_link'])
+
+training_size = 24000
+training_sentences = sentences[:training_size]
+training_labels = labels[:training_size]
+testing_sentences = sentences[training_size:]
+testing_labels = labels[training_size:]
+
+# %%
+from torch.nn import Enbedding
+
