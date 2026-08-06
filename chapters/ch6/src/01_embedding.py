@@ -47,7 +47,3 @@ training_sentences = sentences[:training_size]
 training_labels = labels[:training_size]
 testing_sentences = sentences[training_size:]
 testing_labels = labels[training_size:]
-
-# %%
-from torch.nn import Enbedding
-
