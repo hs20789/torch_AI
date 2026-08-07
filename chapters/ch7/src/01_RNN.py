@@ -1,7 +1,7 @@
 # %%
 import urllib.request
 import zipfile
-import torch 
+import torch
 import torch.optim as optim
 
 # %%
@@ -18,7 +18,7 @@ import numpy as np
 
 glove_embeddings = dict()
 
-f = open("../data/glove.6B.50d.txt")
+f = open("../data/glove.6B.100d.txt")
 for line in f:
     values = line.split()
     word = values[0]
@@ -31,21 +31,24 @@ glove_embeddings["samsung"]
 
 # %%
 
-'''
+"""
 이 임베딩을 신경망 모델의 임베딩 층에 로드하여 임베딩을 처음부터 학습하는 대신
 사전 훈련된 임베딩으로 사용할 수 있다.
-'''
+"""
 import torch.nn as nn
 
+
 class TextClassificationModel(nn.Module):
-    def __init__(self,
-                 vocab_size,
-                 embedding_dim=100,
-                 hidden_dim=16,
-                 dropout_rate=0.25,
-                 pretrained_embeddings=None,
-                 freeze_embeddings=True,
-                 lstm_layers=2,):
+    def __init__(
+        self,
+        vocab_size,
+        embedding_dim=100,
+        hidden_dim=16,
+        dropout_rate=0.25,
+        pretrained_embeddings=None,
+        freeze_embeddings=True,
+        lstm_layers=2,
+    ):
         super().__init__()
         # Embddding Layer
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
@@ -82,18 +85,19 @@ class TextClassificationModel(nn.Module):
     def forward(self, x):
         embedded = self.embedding(x)
         lstm_out, _ = self.lstm(embedded)
-        lstm_out = lstm_out.transpose(1,2)
+        lstm_out = lstm_out.transpose(1, 2)
         pooled = self.global_pooling(lstm_out)
         pooled = pooled.squeeze(-1)
         x = self.relu(self.fc1(pooled))
         x = self.sigmoid(self.fc2(x))
         return x
-    
+
 
 # %%
 from collections import Counter
 from typing import List, Dict, Tuple, Union
 import re
+
 
 # Assuming the tokenize function is defined elsewhere
 def tokenize(text):
@@ -103,6 +107,7 @@ def tokenize(text):
     tokens = cleaned_text.lower().split()
     filtered_tokens = [token for token in tokens if token not in stopwords]
     return filtered_tokens
+
 
 def tokenize_glove_style(text):
     """
@@ -115,14 +120,15 @@ def tokenize_glove_style(text):
     text = text.lower()
 
     # Replace numbers with '0'
-    text = re.sub(r'\d', '0', text)
+    text = re.sub(r"\d", "0", text)
 
     # Split on whitespace and punctuation
     # GloVe keeps punctuation as separate tokens
-    text = re.sub(r'([.,!?()])', r' \1 ', text)
-    text = re.sub(r'\s{2,}', ' ', text)
+    text = re.sub(r"([.,!?()])", r" \1 ", text)
+    text = re.sub(r"\s{2,}", " ", text)
 
     return text.split()
+
 
 def build_vocab(sentences, max_vocab_size=10000):
     counter = Counter()
@@ -130,13 +136,14 @@ def build_vocab(sentences, max_vocab_size=10000):
         counter.update(tokenize(text))
 
     # Take only the top max_vocab_size-1 most frequent words (leave room for special tokens)
-    most_common = counter.most_common(max_vocab_size - 2)  # -2 for  and 
+    most_common = counter.most_common(max_vocab_size - 2)  # -2 for  and
 
     # Create vocabulary with indices starting from 2
     vocab = {word: idx + 2 for idx, (word, _) in enumerate(most_common)}
-    vocab[''] = 0  # Add padding token
-    vocab[''] = 1  # Add unknown token
+    vocab[""] = 0  # Add padding token
+    vocab[""] = 1  # Add unknown token
     return vocab
+
 
 # When building vocabulary:
 def build_vocab_glove(sentences, max_vocab_size=10000):
@@ -149,10 +156,11 @@ def build_vocab_glove(sentences, max_vocab_size=10000):
 
     # Create vocabulary with indices starting from 2
     vocab = {word: idx + 2 for idx, (word, _) in enumerate(most_common)}
-    vocab[''] = 0
-    vocab[''] = 1
+    vocab[""] = 0
+    vocab[""] = 1
 
     return vocab
+
 
 def texts_to_sequences(sentences, word_index):
     sequences = []
@@ -164,6 +172,7 @@ def texts_to_sequences(sentences, word_index):
         sequences.append(sequence)
     return sequences
 
+
 def pad_sequences(sequences, max_len):
     padded_sequences = []
     for seq in sequences:
@@ -173,6 +182,7 @@ def pad_sequences(sequences, max_len):
             padded_seq = seq + [0] * (max_len - len(seq))
         padded_sequences.append(padded_seq)
     return padded_sequences
+
 
 def word_frequency(sentences, word_dict):
     frequency = {word: 0 for word in word_dict}
@@ -184,6 +194,7 @@ def word_frequency(sentences, word_dict):
                 frequency[word] += 1
 
     return frequency
+
 
 def word_frequency_glove(sentences, vocab=None):
     """
@@ -203,12 +214,15 @@ def word_frequency_glove(sentences, vocab=None):
 
     # If vocab is provided, only keep words in vocab
     if vocab is not None:
-        counter = Counter({word: count for word, count in counter.items() if word in vocab})
+        counter = Counter(
+            {word: count for word, count in counter.items() if word in vocab}
+        )
 
     # Sort by frequency (descending) and then alphabetically for ties
     sorted_words = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
 
     return sorted_words
+
 
 # %%
 import json
@@ -217,6 +231,7 @@ import json
 from bs4 import BeautifulSoup
 import string
 
+# fmt: off
 stopwords = ["a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at",
              "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "could", "did", "do",
              "does", "doing", "down", "during", "each", "few", "for", "from", "further", "had", "has", "have", "having",
@@ -230,8 +245,9 @@ stopwords = ["a", "about", "above", "after", "again", "against", "all", "am", "a
              "what", "whats", "when", "whens", "where", "wheres", "which", "while", "who", "whos", "whom", "why",
              "whys", "with", "would", "you", "youd", "youll", "youre", "youve", "your", "yours", "yourself",
              "yourselves"]
+# fmt: on
 
-table = str.maketrans('', '', string.punctuation)
+table = str.maketrans("", "", string.punctuation)
 # %%
 # %%
 from pathlib import Path
@@ -259,17 +275,17 @@ else:
 
 sarcasm_path = download_dir / "sarcasm.json"
 
-datastore = []    
+datastore = []
 sentences = []
 labels = []
 urls = []
 
-with sarcasm_path.open('r', encoding='utf-8') as f:
+with sarcasm_path.open("r", encoding="utf-8") as f:
     for line in f:
         datastore.append(json.loads(line))
 
 for item in datastore:
-    sentence = item['headline'].lower()
+    sentence = item["headline"].lower()
     sentence = sentence.replace(",", " , ")
     sentence = sentence.replace(".", " . ")
     sentence = sentence.replace("-", " - ")
@@ -283,12 +299,12 @@ for item in datastore:
         if word not in stopwords:
             filtered_sentence = filtered_sentence + word + " "
     sentences.append(filtered_sentence)
-    labels.append(item['is_sarcastic'])
-    urls.append(item['article_link'])
+    labels.append(item["is_sarcastic"])
+    urls.append(item["article_link"])
 
 # %%
 vocab_size = 8000
-max_length = 60
+max_length = 80
 training_size = 20000
 
 
@@ -305,15 +321,16 @@ training_padded = pad_sequences(training_sequences, max_len=max_length)
 testing_sequences = texts_to_sequences(testing_sentences, word_index)
 testing_padded = pad_sequences(testing_sequences, max_len=max_length)
 
-#word_freq = word_frequency(training_sentences, word_index)
-#print(word_freq)
+# word_freq = word_frequency(training_sentences, word_index)
+# print(word_freq)
 
 # Example usage:
 word_freq = word_frequency_glove(sentences, word_index)
 
 # %%
 
-def create_model(vocab, device='cuda', embedding_dim=50):
+
+def create_model(vocab, device="cuda", embedding_dim=50):
     # 1. load_pretrained_embeddings에는 vocab '딕셔너리'를 그대로 전달
     pretrained_embeddings = load_pretrained_embeddings(vocab, embedding_dim)
 
@@ -323,10 +340,11 @@ def create_model(vocab, device='cuda', embedding_dim=50):
         embedding_dim=embedding_dim,
         hidden_dim=16,
         pretrained_embeddings=pretrained_embeddings,
-        freeze_embeddings=True
+        freeze_embeddings=True,
     ).to(device)
 
     return model
+
 
 def load_pretrained_embeddings(vocab, embedding_dim=100):
     """
@@ -334,22 +352,22 @@ def load_pretrained_embeddings(vocab, embedding_dim=100):
     """
 
     embeddings_dict = {}
-    glove_file = f'../data/glove.6B.{embedding_dim}d.txt'
+    glove_file = f"../data/glove.6B.{embedding_dim}d.txt"
 
     # Read GloVe embeddings
     print(f"Loading GloVe embeddings from {glove_file}...")
-    with open(glove_file, 'r', encoding='utf-8') as f:
+    with open(glove_file, "r", encoding="utf-8") as f:
         for line in f:
             values = line.split()
             word = values[0]
-            vector = np.asarray(values[1:], dtype='float32')
+            vector = np.asarray(values[1:], dtype="float32")
             embeddings_dict[word] = vector
 
     # Initialize embedding matrix
-    embedding_matrix = np.random.uniform(-0.25, 0.25, (len(vocab)+1, embedding_dim))
+    embedding_matrix = np.random.uniform(-0.25, 0.25, (len(vocab) + 1, embedding_dim))
 
     # Special tokens
-    embedding_matrix[0] = np.zeros(embedding_dim)  # 
+    embedding_matrix[0] = np.zeros(embedding_dim)  #
 
     # Fill with pretrained embeddings
     found_words = 0
@@ -361,17 +379,20 @@ def load_pretrained_embeddings(vocab, embedding_dim=100):
     print(f"Found embeddings for {found_words}/{len(vocab)} words")
     return torch.FloatTensor(embedding_matrix)
 
+
 # Create model with GloVe embeddings
 model = create_model(
     vocab=word_index,
-    device='cuda' if torch.cuda.is_available() else 'cpu',
-    embedding_dim=50  # Can be 50, 100, 200, or 300
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    embedding_dim=100,  # Can be 50, 100, 200, or 300
 )
 
 
 # Define loss function and optimizer
 criterion = nn.BCELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.00003, betas=(0.9, 0.999), amsgrad=False)
+optimizer = optim.Adam(
+    model.parameters(), lr=0.00003, betas=(0.9, 0.999), amsgrad=False
+)
 
 # %%
 from torch.utils.data import TensorDataset, DataLoader
@@ -436,22 +457,27 @@ for epoch in range(num_epochs):
             val_total += targets.size(0)
             val_correct += ((outputs.squeeze() > 0.5) == targets).sum().item()
 
-    print(f'Epoch {epoch+1}/{num_epochs}:')
-    train_loss_history.append(train_loss/len(train_loader))
-    train_acc_history.append(train_correct/train_total)
-    val_loss_history.append(val_loss/len(test_loader))
-    val_acc_history.append(val_correct/val_total)
-    print(f'Train Loss: {train_loss/len(train_loader):.4f}, Train Acc: {train_correct/train_total:.4f}')
-    print(f'Val Loss: {val_loss/len(test_loader):.4f}, Val Acc: {val_correct/val_total:.4f}')
+    print(f"Epoch {epoch + 1}/{num_epochs}:")
+    train_loss_history.append(train_loss / len(train_loader))
+    train_acc_history.append(train_correct / train_total)
+    val_loss_history.append(val_loss / len(test_loader))
+    val_acc_history.append(val_correct / val_total)
+    print(
+        f"Train Loss: {train_loss / len(train_loader):.4f}, Train Acc: {train_correct / train_total:.4f}"
+    )
+    print(
+        f"Val Loss: {val_loss / len(test_loader):.4f}, Val Acc: {val_correct / val_total:.4f}"
+    )
 
 # After training, you can save the model
-torch.save(model.state_dict(), '../data/text_classification_model.pth')
+torch.save(model.state_dict(), "../data/text_classification_model.pth")
 
 # %%
 
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 def plot_training_metrics(train_loss, train_acc, val_loss, val_acc):
     """
@@ -470,46 +496,49 @@ def plot_training_metrics(train_loss, train_acc, val_loss, val_acc):
     epochs = range(1, len(train_loss) + 1)
 
     # First subplot: Loss
-    ax1.plot(epochs, train_loss, 'b-', label='Training Loss')
-    ax1.plot(epochs, val_loss, 'r-', label='Validation Loss')
-    ax1.set_title('Training and Validation Loss')
-    ax1.set_xlabel('Epochs')
-    ax1.set_ylabel('Loss')
+    ax1.plot(epochs, train_loss, "b-", label="Training Loss")
+    ax1.plot(epochs, val_loss, "r-", label="Validation Loss")
+    ax1.set_title("Training and Validation Loss")
+    ax1.set_xlabel("Epochs")
+    ax1.set_ylabel("Loss")
     ax1.legend()
     ax1.grid(True)
 
     # Second subplot: Accuracy
-    ax2.plot(epochs, train_acc, 'b-', label='Training Accuracy')
-    ax2.plot(epochs, val_acc, 'r-', label='Validation Accuracy')
-    ax2.set_title('Training and Validation Accuracy')
-    ax2.set_xlabel('Epochs')
-    ax2.set_ylabel('Accuracy')
+    ax2.plot(epochs, train_acc, "b-", label="Training Accuracy")
+    ax2.plot(epochs, val_acc, "r-", label="Validation Accuracy")
+    ax2.set_title("Training and Validation Accuracy")
+    ax2.set_xlabel("Epochs")
+    ax2.set_ylabel("Accuracy")
     ax2.legend()
     ax2.grid(True)
 
     # Add accuracy percentage labels
-    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.0%}'.format(y)))
+    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: "{:.0%}".format(y)))
 
     # Adjust layout to prevent overlap
     plt.tight_layout()
 
     return fig
 
+
 # Usage example:
-plot_training_metrics(train_loss_history, train_acc_history, val_loss_history, val_acc_history)
+plot_training_metrics(
+    train_loss_history, train_acc_history, val_loss_history, val_acc_history
+)
 plt.show()
-     
+
 # %%
 
 
-def predict_sentences(model, sentences, vocab, max_len, device='cuda', threshold=0.5):
+def predict_sentences(model, sentences, vocab, max_len, device="cuda", threshold=0.5):
     """
     Make predictions for new sentences and interpret results
     """
     # Preprocess
     sequences = texts_to_sequences(sentences, vocab)
     padded = pad_sequences(sequences, max_len)
-    #print(padded)
+    # print(padded)
 
     # Convert to tensor
     input_ids = torch.tensor(padded, dtype=torch.long).to(device)
@@ -529,10 +558,13 @@ def predict_sentences(model, sentences, vocab, max_len, device='cuda', threshold
         print(f"Classification: {'Sarcastic' if pred == 1 else 'Not Sarcastic'}")
         print("-" * 80)
 
-test_sentences = ["It Was, For, Uh, Medical Reasons, Says Doctor To Boris Johnson, Explaining Why They Had To Give Him Haircut",
-             "It's a beautiful sunny day",
-             "I lived in Ireland, so in high school they made me learn to speak and write in Gaelic",
-             "Census Foot Soldiers Swarm Neighborhoods, Kick Down Doors To Tally Household Sizes"]
+
+test_sentences = [
+    "It Was, For, Uh, Medical Reasons, Says Doctor To Boris Johnson, Explaining Why They Had To Give Him Haircut",
+    "It's a beautiful sunny day",
+    "I lived in Ireland, so in high school they made me learn to speak and write in Gaelic",
+    "Census Foot Soldiers Swarm Neighborhoods, Kick Down Doors To Tally Household Sizes",
+]
 
 # Example usage:
 model = model.to(device)
@@ -540,7 +572,29 @@ predict_sentences(
     model=model,
     sentences=test_sentences,
     vocab=word_index,
-    max_len=85,
-    threshold=0.5  # Adjust this threshold if needed
+    max_len=max_length,
+    threshold=0.5,  # Adjust this threshold if needed
 )
-     
+
+
+# %%
+my_sentences = [
+    "You just Idiot, you don't know how to use a computer",
+    "Hmm... I think this is a great idea!",
+    " Thanks a lot. Now I have to walk to the supermarket and carry the groceries.",
+    "Sorry I didn't hear my phone ring, I was too busy today not like you, I was working hard and you were just sitting there doing nothing.",
+    "Thank you. This is exactly what I needed.",
+    "Today is very sunny and warm, perfect for a walk in the park.",
+    "Fuck You!!! Itiot!!!!",
+    "I can't believe you did that. You're such a genius.",
+]
+
+
+model = model.to(device)
+predict_sentences(
+    model=model,
+    sentences=my_sentences,
+    vocab=word_index,
+    max_len=max_length,
+    threshold=0.5,  # Adjust this threshold if needed
+)
