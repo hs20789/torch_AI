@@ -43,3 +43,10 @@ print("Shape explanation:")
 print(f"- Number of sentences: {embeddings.shape[0]}")
 print(f"- Words per sentence: {embeddings.shape[1]}")
 print(f"- Embedding dimensions: {embeddings.shape[2]}")
+
+print("*" * 30)
+print(f"Embedding: {embeddings}")
+
+
+# %%
+
