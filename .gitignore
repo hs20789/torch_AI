@@ -20,3 +20,11 @@ chapters/ch3/validation-horse-or-human.zip
 
 # Downloaded datasets
 data/
+
+# Secrets / API keys
+.env
+.env.*
+!.env.example
+
+# Jupyter
+.ipynb_checkpoints/
