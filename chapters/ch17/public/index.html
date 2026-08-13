@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Novel Analysis</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .upload-form, .analysis, .error {
+        background: #f5f5f5;
+        padding: 20px;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .submit-button {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .submit-button:hover {
+        background: #0056b3;
+      }
+      .submit-button:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+      }
+      .loading {
+        display: none;
+        margin: 20px 0;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      #result {
+        display: none;
+        white-space: pre-wrap;
+      }
+      .error {
+        color: red;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Novel Analysis Tool</h1>
+    <div class="upload-form">
+      <h2>Upload your novel</h2>
+      <form id="uploadForm">
+        <input type="file" name="novel" accept=".txt" required>
+        <br>
+        <button type="submit" class="submit-button">Analyze Novel</button>
+      </form>
+    </div>
+    
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Analyzing your novel... This may take a few minutes.</p>
+    </div>
+    
+    <div id="result" class="analysis"></div>
+    <div id="error" class="error"></div>
+
+    <script>
+      document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const form = e.target;
+        const submitButton = form.querySelector('button');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+        
+        // Reset displays
+        loading.style.display = 'none';
+        result.style.display = 'none';
+        error.style.display = 'none';
+        
+        try {
+          // Disable submit button and show loading
+          submitButton.disabled = true;
+          loading.style.display = 'block';
+          
+          // Upload file
+          const formData = new FormData(form);
+          const response = await fetch('/analyze', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) throw new Error('Upload failed');
+          
+          const { jobId } = await response.json();
+          
+          // Poll for results
+          while (true) {
+            const statusResponse = await fetch(`/status/${jobId}`);
+            if (!statusResponse.ok) throw new Error('Status check failed');
+            
+            const status = await statusResponse.json();
+            
+            if (status.status === 'completed') {
+              result.textContent = status.result;
+              result.style.display = 'block';
+              loading.style.display = 'none';
+              break;
+            } else if (status.status === 'error') {
+              throw new Error(status.error);
+            }
+            
+            // Wait before polling again
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (err) {
+          error.textContent = `Error: ${err.message}`;
+          error.style.display = 'block';
+          loading.style.display = 'none';
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

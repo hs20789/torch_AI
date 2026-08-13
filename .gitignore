@@ -22,6 +22,7 @@ chapters/ch3/validation-horse-or-human.zip
 data/
 imgs/
 img/
+node_modules/
 
 # Secrets / API keys
 .env
