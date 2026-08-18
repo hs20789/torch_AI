@@ -6,8 +6,11 @@ import psycopg
 
 from create_vector_db import (
     TABLE_NAME,
-    load_pdf, split_documents, create_embeddings,
-    create_engine, create_vectorstore,
+    load_pdf,
+    split_documents,
+    create_embeddings,
+    create_engine,
+    create_vectorstore,
 )
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"

@@ -7,7 +7,7 @@ from langchain_core.documents import Document
 from search_vector_db import get_vectorstore
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
-DEFAULT_MODEL = "gemma3:1b"
+DEFAULT_MODEL = "gemma3:4b"
 
 SYSTEM_PROMPT = (
     "You are a helpful AI assistant. Use the provided context to answer "
@@ -90,6 +90,7 @@ def rag_query(
     response = query_ollama(query, context)
     return response, relevant_docs
 
+
 def query_ollama_plain(prompt: str, model: str = DEFAULT_MODEL) -> str:
     """문맥 없이 질문만 보낸다. RAG 비교용."""
     payload = {
@@ -98,7 +99,7 @@ def query_ollama_plain(prompt: str, model: str = DEFAULT_MODEL) -> str:
         "stream": False,
     }
     try:
-        r = requests.post(OLLAMA_URL, json=payload, timeout=120)
+        r = requests.post(OLLAMA_URL, json=payload, timeout=240)
         r.raise_for_status()
         return r.json()["message"]["content"]
     except requests.exceptions.RequestException as e:

@@ -10,16 +10,18 @@ from search_vector_db import get_vectorstore
 DEFAULT_MODEL = "gpt-4o-mini"
 
 # 큰 모델은 문맥에만 가두지 않고 조금 자유롭게 두는 편이 낫다 (책 18.3.1)
-RAG_PROMPT = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        "You are a helpful AI assistant. Use the following context to answer "
-        "questions. Please provide as much detail as possible in a "
-        "comprehensive answer.",
-    ),
-    ("system", "Context:\n{context}"),
-    ("user", "{question}"),
-])
+RAG_PROMPT = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are a helpful AI assistant. Use the following context to answer "
+            "questions. Please provide as much detail as possible in a "
+            "comprehensive answer.",
+        ),
+        ("system", "Context:\n{context}"),
+        ("user", "{question}"),
+    ]
+)
 
 
 def search_vectorstore(vectorstore, query: str, k: int = 3) -> list[Document]:
