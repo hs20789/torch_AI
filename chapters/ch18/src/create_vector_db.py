@@ -94,7 +94,6 @@ def init_vector_table(
     engine: PGEngine,
     table_name: str = TABLE_NAME,
     vector_size: int = VECTOR_SIZE,
-    overwrite_existing: bool = True,
 ) -> None:
     """
     벡터 테이블을 생성한다. (최초 1회)
@@ -108,7 +107,6 @@ def init_vector_table(
     engine.init_vectorstore_table(
         table_name=table_name,
         vector_size=vector_size,
-        overwrite_existing=overwrite_existing,
     )
 
 

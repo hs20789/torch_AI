@@ -21,13 +21,14 @@ def get_vectorstore() -> PGVectorStore:
 def main() -> None:
     vectorstore = get_vectorstore()
 
-    query = "MLOps란 무엇인가?"
+    query = "What is LLMOps?"
     results = vectorstore.similarity_search_with_score(query, k=5)
 
     for i, (doc, score) in enumerate(results, 1):
+        filename = Path(doc.metadata.get("source", "")).name
         print(f"\n--- {i} (거리: {score:.4f}) ---")
         print(doc.page_content[:300])
-        print("page:", doc.metadata.get("page"))
+        print(f"출처: {filename}, page {doc.metadata.get('page')}")
 
 if __name__ == "__main__":
     main()
