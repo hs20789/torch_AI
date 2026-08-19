@@ -1,0 +1,42 @@
+[
+  {
+    "id": "canary",
+    "question": "Canary 배포는 무엇이고 왜 쓰는가?",
+    "doc_id": "example.pdf",
+    "expect_pages": [16],
+    "answer_keywords": ["Canary", "트래픽"]
+  },
+  {
+    "id": "pgvector",
+    "question": "pgvector로 RAG 저장소를 구성하면 어떤 장점이 있나?",
+    "doc_id": "example.pdf",
+    "expect_pages": [27],
+    "answer_keywords": ["PostgreSQL", "벡터"]
+  },
+  {
+    "id": "drift",
+    "question": "데이터 드리프트와 concept drift의 차이는 무엇인가?",
+    "doc_id": "example.pdf",
+    "expect_pages": [21],
+    "answer_keywords": ["concept drift", "분포"]
+  },
+  {
+    "id": "monitoring-layers",
+    "question": "모델 모니터링은 어떤 층으로 나누어 보는가?",
+    "doc_id": "example.pdf",
+    "expect_pages": [19],
+    "answer_keywords": ["시스템", "데이터", "모델 품질"]
+  },
+  {
+    "id": "rag-flow",
+    "question": "RAG 서비스에서 질문 한 건은 내부적으로 어떻게 처리되나?",
+    "doc_id": "example.pdf",
+    "expect_pages": [37],
+    "answer_keywords": ["임베딩", "reranker"]
+  },
+  {
+    "id": "out-of-domain",
+    "question": "우리 회사 연차 휴가는 며칠이고 어떻게 신청하나요?",
+    "expect_no_answer": true
+  }
+]
